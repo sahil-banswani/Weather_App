@@ -14,8 +14,8 @@ class HourlyForcastCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       child: Container(
-        width: 120,
-        height: MediaQuery.of(context).size.height * 0.17,
+        width: 100,
+        height: MediaQuery.of(context).size.height * 0.15,
         padding: const EdgeInsets.all(8.0),
         child: Container(
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
@@ -23,13 +23,15 @@ class HourlyForcastCard extends StatelessWidget {
             children: [
               Text(
                 time,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(
-                height: 14,
+                height: 10,
               ),
-              Container(
+              SizedBox(
                   height: 32,
                   width: 32,
                   child: Image.asset(
@@ -38,7 +40,7 @@ class HourlyForcastCard extends StatelessWidget {
               const SizedBox(
                 height: 8,
               ),
-              Text(value)
+              Text("$value ^C")
             ],
           ),
         ),

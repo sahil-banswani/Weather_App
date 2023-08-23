@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:wheather_app_rivaan/secrets.dart';
 import 'package:wheather_app_rivaan/widget/additional_information.dart';
 import 'package:wheather_app_rivaan/widget/hourly_forcast_card.dart';
@@ -14,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Future<Map<String, dynamic>> weather;
+
   Future<Map<String, dynamic>> getCurrentWeather() async {
     try {
       String cityName = 'Nagpur';
@@ -35,6 +38,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    weather = getCurrentWeather();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -44,14 +53,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          InkWell(
-            child: const Icon(Icons.refresh),
-            onTap: () {},
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              setState(() {
+                weather = getCurrentWeather();
+              });
+            },
           ),
         ],
       ),
       body: FutureBuilder(
-        future: getCurrentWeather(),
+        future: weather,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -95,18 +108,30 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(children: [
-                            Text(
-                              '$currentTemp *C',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
+                            const Text(
+                              'Nagpur',
+                              style: TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 25.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Image.asset(
+                                    currentCloud,
+                                  ),
+                                  Text(
+                                    '$currentTemp ^C',
+                                    style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(
-                              height: 14,
-                            ),
-                            Image.asset(
-                              currentCloud,
                             ),
                             const SizedBox(
                               height: 14,
@@ -135,18 +160,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(
                   height: 16,
                 ),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (int i = 1; i <= 6; i++)
-                        HourlyForcastCard(
-                          image:
-                              data['list'][i]['weather'][0]['icon'].toString(),
-                          time: data['list'][i]['dt'].toString(),
-                          value: data['list'][i]['main']['temp'].toString(),
-                        ),
-                    ],
+                // SingleChildScrollView(
+                //   scrollDirection: Axis.horizontal,
+                //   child: Row(
+                //     children: [
+                //       for (int i = 1; i <= 6; i++)
+                //         HourlyForcastCard(
+                //           image:
+                //               data['list'][i]['weather'][0]['icon'].toString(),
+                //           time: data['list'][i]['dt'].toString(),
+                //           value: (data['list'][i]['main']['temp'] - 273)
+                //               .toStringAsFixed(2),
+                //         ),
+                //     ],
+                //   ),
+                // ),
+
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.15,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 6,
+                    itemBuilder: (context, index) {
+                      final hourlyForecast = data['list'][index + 1];
+                      final time = DateTime.parse(hourlyForecast['dt_txt']);
+                      return HourlyForcastCard(
+                        value: (hourlyForecast['main']['temp'] - 273)
+                            .toStringAsFixed(2),
+                        time: DateFormat.j().format(time),
+                        image: hourlyForecast['weather'][0]['icon'],
+                      );
+                    },
                   ),
                 ),
                 //wether forcast height
